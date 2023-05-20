@@ -61,6 +61,7 @@ checkinAN int,
 checkinAP int,
 capacidadetotal int,
 capacidadefinal int,
+Id_locais int,
 PRIMARY KEY (Id_eventos)
 );
 
@@ -102,6 +103,11 @@ values
 (2, 'c01', 'c', 25),
 (1, 'd01', 'd', 30);
 
+insert into  locais (Id_locais, nome, bloco, capacidades)
+values
+(5, 'a02', 'a', 30);
+
+
 insert into  Checklist (Id_Checklist, Id_locais, requisito, verificado)
 values
 (12, 1, 'ar condicional', 1),
@@ -124,6 +130,10 @@ values
 (2, 'evento2', '2023-02-04', '2023-03-10',60,60,20,20),
 (1, 'evento1', '2022-09-10', '2022-09-15',20,20,30,30);
 
+insert into  eventos (Id_eventos, nome, dti, dtf, checkinAN, checkinAP, capacidadetotal, capacidadefinal )
+values
+(5, 'evento5', '2023-05-10', '2023-05-12',40,40,30,30);
+
 insert into participantes (Id_participantes, Id_eventos, Id_usuario, ticket)
 values
 (9, 4, 1, '57245227'),
@@ -141,7 +151,7 @@ from locais
 inner join eventos e on Id_locais ;
 
 select Id_locais
-from locais
+from locais 
 inner join eventos e on Id_locais 
 where Id_locais is null;
 
@@ -159,8 +169,35 @@ inner join participantes p on p.Id_eventos = e.Id_eventos
 inner join usuarios u on u.Id_usuario = p.Id_usuario
 where e.dti > current_date();
 
-select u.Id_usuario, u.nome, count(p.ID) as quantidadeChc 
-from eventos e
+select u.Id_usuario, u.nome, count(p.Id_usuario) as quantidadeChc
+from eventos e 
 inner join participantes p on p.Id_eventos = e.Id_eventos
 inner join usuarios u on u.Id_usuario = p.Id_usuario
-where e.dti > current_date();
+where e.dti > current_date
+group by u.Id_usuario, u.nome;
+
+select e.Id_eventos, e.nome, count(p.Id_participantes) as quantidadeChc
+from eventos e 
+left join participantes p on p.Id_eventos = e.Id_eventos
+group by e.Id_eventos, e.nome
+order by  quantidadeChc desc;
+
+select e.Id_eventos, e.nome, count(p.Id_participantes) as quantidadeChc
+from eventos e 
+left join participantes p on p.Id_eventos = e.Id_eventos
+group by e.Id_eventos, e.nome
+order by  quantidadeChc asc;
+
+select l.Id_locais, l.nome, avg(e.capacidadetotal) as Mediaparticipantes 
+from locais l
+left join eventos e on e.Id_locais = l.Id_locais
+group by l.Id_locais, l.nome;
+
+select u.Id_usuario, u.nome as perfilacesso 
+from usuarios u 
+inner join restricao r on r.Id_restricao = u.papel; 
+
+select e.Id_eventos, e.nome , e.dti
+from eventos e 
+where e.checkinAN > 0
+and e.dtf >= current_date()
